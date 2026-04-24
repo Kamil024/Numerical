@@ -2,7 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class NewtonCalculator extends JDialog {
-    private JTextField equationField, derivativeField, x0Field, toleranceField;
+    private JTextField equationField, derivativeField, x0Field;
     private JTextArea resultArea;
 
     public NewtonCalculator(JFrame parent) {
@@ -34,12 +34,10 @@ public class NewtonCalculator extends JDialog {
         equationField = new JTextField("x^3 - x - 2", 20);
         derivativeField = new JTextField("3*x^2 - 1", 20);
         x0Field = new JTextField("1.5", 10);
-        toleranceField = new JTextField("0.0001", 10);
 
         addFormField(formPanel, formGbc, "Function f(x):", equationField, 0);
         addFormField(formPanel, formGbc, "Derivative f'(x):", derivativeField, 1);
         addFormField(formPanel, formGbc, "Initial guess x₀:", x0Field, 2);
-        addFormField(formPanel, formGbc, "Tolerance:", toleranceField, 3);
 
         gbc.gridy = 1; gbc.gridwidth = 2;
         panel.add(formPanel, gbc);
@@ -47,7 +45,7 @@ public class NewtonCalculator extends JDialog {
         JButton calcButton = new JButton("Calculate");
         calcButton.setFont(new Font("Arial", Font.BOLD, 16));
         calcButton.setBackground(new Color(234, 88, 12));
-        calcButton.setForeground(Color.WHITE);
+        calcButton.setForeground(Color.BLACK);
         calcButton.setFocusPainted(false);
         calcButton.addActionListener(e -> calculate());
         gbc.gridy = 2;
@@ -81,7 +79,7 @@ public class NewtonCalculator extends JDialog {
             String equation = equationField.getText();
             String derivative = derivativeField.getText();
             double x = Double.parseDouble(x0Field.getText());
-            double tolerance = Double.parseDouble(toleranceField.getText());
+            double tolerance = 0.0001;
 
             int iterations = 0;
             int maxIterations = 100;
@@ -96,6 +94,7 @@ public class NewtonCalculator extends JDialog {
                 }
 
                 double xNew = x - fx / fpx;
+                iterations++;
 
                 if (Math.abs(xNew - x) < tolerance) {
                     resultArea.setText(String.format("Root found: %.6f\nIterations: %d", xNew, iterations));
@@ -103,7 +102,6 @@ public class NewtonCalculator extends JDialog {
                 }
 
                 x = xNew;
-                iterations++;
             }
 
             resultArea.setText(String.format("Root: %.6f\nIterations: %d", x, iterations));

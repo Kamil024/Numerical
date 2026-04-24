@@ -62,7 +62,7 @@ public class TrapezoidalCalculator extends JDialog {
         JButton calcButton = new JButton("Calculate");
         calcButton.setFont(new Font("Arial", Font.BOLD, 16));
         calcButton.setBackground(new Color(13, 148, 136));
-        calcButton.setForeground(Color.WHITE);
+        calcButton.setForeground(Color.BLACK);
         calcButton.setFocusPainted(false);
         calcButton.addActionListener(e -> calculate());
         gbc.gridy = 2;

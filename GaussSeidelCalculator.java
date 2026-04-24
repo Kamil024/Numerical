@@ -2,7 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class GaussSeidelCalculator extends JDialog {
-    private JTextField sizeField, toleranceField;
+    private JTextField sizeField;
     private JTextArea matrixArea, resultArea;
 
     public GaussSeidelCalculator(JFrame parent) {
@@ -32,7 +32,6 @@ public class GaussSeidelCalculator extends JDialog {
         formGbc.insets = new Insets(5, 5, 5, 5);
 
         sizeField = new JTextField("3", 10);
-        toleranceField = new JTextField("0.0001", 10);
         matrixArea = new JTextArea("10,1,1,13\n1,10,1,14\n1,1,10,15", 4, 30);
         matrixArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
 
@@ -46,18 +45,13 @@ public class GaussSeidelCalculator extends JDialog {
         formGbc.gridx = 1; formGbc.gridwidth = 2;
         formPanel.add(new JScrollPane(matrixArea), formGbc);
 
-        formGbc.gridx = 0; formGbc.gridy = 2; formGbc.gridwidth = 1;
-        formPanel.add(new JLabel("Tolerance:"), formGbc);
-        formGbc.gridx = 1;
-        formPanel.add(toleranceField, formGbc);
-
         gbc.gridy = 1; gbc.gridwidth = 2;
         panel.add(formPanel, gbc);
 
         JButton calcButton = new JButton("Calculate");
         calcButton.setFont(new Font("Arial", Font.BOLD, 16));
         calcButton.setBackground(new Color(79, 70, 229));
-        calcButton.setForeground(Color.WHITE);
+        calcButton.setForeground(Color.BLACK);
         calcButton.setFocusPainted(false);
         calcButton.addActionListener(e -> calculate());
         gbc.gridy = 2;
@@ -78,7 +72,6 @@ public class GaussSeidelCalculator extends JDialog {
     private void calculate() {
         try {
             int n = Integer.parseInt(sizeField.getText());
-            double tolerance = Double.parseDouble(toleranceField.getText());
             String[] rows = matrixArea.getText().trim().split("\n");
 
             double[][] A = new double[n][n];
@@ -92,12 +85,25 @@ public class GaussSeidelCalculator extends JDialog {
                 b[i] = Double.parseDouble(values[n].trim());
             }
 
+            double tolerance = 0.001;
             double[] x = new double[n];
-            int maxIterations = 100;
-            int iterations = 0;
+            double[] prevX = new double[n];
+            double[] ea = new double[n];
 
-            while (iterations < maxIterations) {
-                double[] xOld = x.clone();
+            for (int i = 0; i < n; i++) {
+                x[i] = 0;
+                prevX[i] = 0;
+                ea[i] = Double.MAX_VALUE;
+            }
+
+            int iteration = 0;
+            boolean converged;
+
+            do {
+                iteration++;
+                for (int i = 0; i < n; i++) {
+                    prevX[i] = x[i];
+                }
 
                 for (int i = 0; i < n; i++) {
                     double sum = b[i];
@@ -109,23 +115,28 @@ public class GaussSeidelCalculator extends JDialog {
                     x[i] = sum / A[i][i];
                 }
 
-                double maxDiff = 0;
                 for (int i = 0; i < n; i++) {
-                    maxDiff = Math.max(maxDiff, Math.abs(x[i] - xOld[i]));
+                    ea[i] = Math.abs(x[i] - prevX[i]);
                 }
 
-                iterations++;
+                converged = true;
+                for (int i = 0; i < n; i++) {
+                    if (ea[i] > tolerance) {
+                        converged = false;
+                        break;
+                    }
+                }
 
-                if (maxDiff < tolerance) {
+                if (iteration >= 100) {
                     break;
                 }
-            }
+            } while (!converged);
 
             StringBuilder solution = new StringBuilder("Solution:\n");
             for (int i = 0; i < n; i++) {
                 solution.append(String.format("x%d = %.6f\n", i + 1, x[i]));
             }
-            solution.append(String.format("Iterations: %d", iterations));
+            solution.append(String.format("Iterations: %d", iteration));
             resultArea.setText(solution.toString());
 
         } catch (Exception e) {

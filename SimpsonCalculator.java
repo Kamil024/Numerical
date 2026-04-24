@@ -76,7 +76,7 @@ public class SimpsonCalculator extends JDialog {
         JButton calcButton = new JButton("Calculate");
         calcButton.setFont(new Font("Arial", Font.BOLD, 16));
         calcButton.setBackground(new Color(219, 39, 119));
-        calcButton.setForeground(Color.WHITE);
+        calcButton.setForeground(Color.BLACK);
         calcButton.setFocusPainted(false);
         calcButton.addActionListener(e -> calculate());
         gbc.gridy = 2;
@@ -143,11 +143,43 @@ public class SimpsonCalculator extends JDialog {
     }
 
     private double evaluateFunction(double x, String equation) {
-        String expr = equation.replace("^", "**").replace("x", String.valueOf(x));
+        String expr = buildExpression(x, equation);
         try {
             return new ExpressionEvaluator().eval(expr);
         } catch (Exception e) {
             return Double.NaN;
         }
+    }
+
+    private String buildExpression(double x, String equation) {
+        StringBuilder expr = new StringBuilder();
+        String cleaned = equation.replace(" ", "");
+        for (int i = 0; i < cleaned.length(); i++) {
+            char c = cleaned.charAt(i);
+            if (c == 'x') {
+                if (expr.length() > 0) {
+                    char prev = expr.charAt(expr.length() - 1);
+                    if (prev == ')' || Character.isDigit(prev)) {
+                        expr.append('*');
+                    }
+                }
+                expr.append('(').append(x).append(')');
+                if (i + 1 < cleaned.length()) {
+                    char next = cleaned.charAt(i + 1);
+                    if (next == '(' || next == 'x' || Character.isDigit(next)) {
+                        expr.append('*');
+                    }
+                }
+            } else {
+                if (c == '(' && expr.length() > 0) {
+                    char prev = expr.charAt(expr.length() - 1);
+                    if (prev == ')' || Character.isDigit(prev)) {
+                        expr.append('*');
+                    }
+                }
+                expr.append(c);
+            }
+        }
+        return expr.toString();
     }
 }

@@ -2,7 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class GaussJacobiCalculator extends JDialog {
-    private JTextField sizeField, toleranceField;
+    private JTextField sizeField;
     private JTextArea matrixArea, resultArea;
 
     public GaussJacobiCalculator(JFrame parent) {
@@ -32,7 +32,6 @@ public class GaussJacobiCalculator extends JDialog {
         formGbc.insets = new Insets(5, 5, 5, 5);
 
         sizeField = new JTextField("3", 10);
-        toleranceField = new JTextField("0.0001", 10);
         matrixArea = new JTextArea("10,1,1,13\n1,10,1,14\n1,1,10,15", 4, 30);
         matrixArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
 
@@ -46,18 +45,13 @@ public class GaussJacobiCalculator extends JDialog {
         formGbc.gridx = 1; formGbc.gridwidth = 2;
         formPanel.add(new JScrollPane(matrixArea), formGbc);
 
-        formGbc.gridx = 0; formGbc.gridy = 2; formGbc.gridwidth = 1;
-        formPanel.add(new JLabel("Tolerance:"), formGbc);
-        formGbc.gridx = 1;
-        formPanel.add(toleranceField, formGbc);
-
         gbc.gridy = 1; gbc.gridwidth = 2;
         panel.add(formPanel, gbc);
 
         JButton calcButton = new JButton("Calculate");
         calcButton.setFont(new Font("Arial", Font.BOLD, 16));
         calcButton.setBackground(new Color(220, 38, 38));
-        calcButton.setForeground(Color.WHITE);
+        calcButton.setForeground(Color.BLACK);
         calcButton.setFocusPainted(false);
         calcButton.addActionListener(e -> calculate());
         gbc.gridy = 2;
@@ -78,7 +72,6 @@ public class GaussJacobiCalculator extends JDialog {
     private void calculate() {
         try {
             int n = Integer.parseInt(sizeField.getText());
-            double tolerance = Double.parseDouble(toleranceField.getText());
             String[] rows = matrixArea.getText().trim().split("\n");
 
             double[][] A = new double[n][n];
@@ -92,6 +85,7 @@ public class GaussJacobiCalculator extends JDialog {
                 b[i] = Double.parseDouble(values[n].trim());
             }
 
+            double tolerance = 0.001;
             double[] x = new double[n];
             int maxIterations = 100;
             int iterations = 0;

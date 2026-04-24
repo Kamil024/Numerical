@@ -2,7 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class BisectionCalculator extends JDialog {
-    private JTextField equationField, aField, bField, toleranceField;
+    private JTextField equationField, aField, bField;
     private JTextArea resultArea;
 
     public BisectionCalculator(JFrame parent) {
@@ -34,12 +34,10 @@ public class BisectionCalculator extends JDialog {
         equationField = new JTextField("x^3 - x - 2", 20);
         aField = new JTextField("1", 10);
         bField = new JTextField("2", 10);
-        toleranceField = new JTextField("0.0001", 10);
 
         addFormField(formPanel, formGbc, "Function f(x):", equationField, 0);
         addFormField(formPanel, formGbc, "Lower bound (a):", aField, 1);
         addFormField(formPanel, formGbc, "Upper bound (b):", bField, 2);
-        addFormField(formPanel, formGbc, "Tolerance:", toleranceField, 3);
 
         gbc.gridy = 1; gbc.gridwidth = 2;
         panel.add(formPanel, gbc);
@@ -47,7 +45,7 @@ public class BisectionCalculator extends JDialog {
         JButton calcButton = new JButton("Calculate");
         calcButton.setFont(new Font("Arial", Font.BOLD, 16));
         calcButton.setBackground(new Color(37, 99, 235));
-        calcButton.setForeground(Color.WHITE);
+        calcButton.setForeground(Color.BLACK);
         calcButton.setFocusPainted(false);
         calcButton.addActionListener(e -> calculate());
         gbc.gridy = 2;
@@ -81,7 +79,7 @@ public class BisectionCalculator extends JDialog {
             String equation = equationField.getText();
             double a = Double.parseDouble(aField.getText());
             double b = Double.parseDouble(bField.getText());
-            double tolerance = Double.parseDouble(toleranceField.getText());
+            double tolerance = 0.001;
 
             int iterations = 0;
             int maxIterations = 100;
@@ -91,8 +89,12 @@ public class BisectionCalculator extends JDialog {
                 double fc = evaluateFunction(c, equation);
                 double fa = evaluateFunction(a, equation);
 
-                if (Math.abs(fc) < tolerance) {
-                    resultArea.setText(String.format("Root found: %.6f\nIterations: %d", c, iterations));
+                if (Double.isNaN(fc) || Double.isNaN(fa)) {
+                    throw new RuntimeException("Invalid function evaluation");
+                }
+
+                if (Math.abs(fc) < 1e-12) {
+                    resultArea.setText(String.format("Root found: %.2f\nIterations: %d", c, iterations + 1));
                     return;
                 }
 
@@ -105,7 +107,7 @@ public class BisectionCalculator extends JDialog {
             }
 
             double root = (a + b) / 2;
-            resultArea.setText(String.format("Root: %.6f\nIterations: %d", root, iterations));
+            resultArea.setText(String.format("Root: %.2f\nIterations: %d", root, iterations));
 
         } catch (Exception e) {
             resultArea.setText("Error: " + e.getMessage());
@@ -113,12 +115,44 @@ public class BisectionCalculator extends JDialog {
     }
 
     private double evaluateFunction(double x, String equation) {
-        String expr = equation.replace("^", "**").replace("x", String.valueOf(x));
+        String expr = buildExpression(x, equation);
         try {
             return eval(expr);
         } catch (Exception e) {
             return Double.NaN;
         }
+    }
+
+    private String buildExpression(double x, String equation) {
+        StringBuilder expr = new StringBuilder();
+        String cleaned = equation.replace(" ", "");
+        for (int i = 0; i < cleaned.length(); i++) {
+            char c = cleaned.charAt(i);
+            if (c == 'x') {
+                if (expr.length() > 0) {
+                    char prev = expr.charAt(expr.length() - 1);
+                    if (prev == ')' || Character.isDigit(prev)) {
+                        expr.append('*');
+                    }
+                }
+                expr.append('(').append(x).append(')');
+                if (i + 1 < cleaned.length()) {
+                    char next = cleaned.charAt(i + 1);
+                    if (next == '(' || next == 'x' || Character.isDigit(next)) {
+                        expr.append('*');
+                    }
+                }
+            } else {
+                if (c == '(' && expr.length() > 0) {
+                    char prev = expr.charAt(expr.length() - 1);
+                    if (prev == ')' || prev == 'x' || Character.isDigit(prev)) {
+                        expr.append('*');
+                    }
+                }
+                expr.append(c);
+            }
+        }
+        return expr.toString();
     }
 
     private double eval(String expr) {
