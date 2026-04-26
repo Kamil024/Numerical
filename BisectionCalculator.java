@@ -7,7 +7,7 @@ public class BisectionCalculator extends JDialog {
 
     public BisectionCalculator(JFrame parent) {
         super(parent, "Bisection Method", true);
-        setSize(600, 500);
+        setSize(620, 520);
         setLocationRelativeTo(parent);
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -79,10 +79,12 @@ public class BisectionCalculator extends JDialog {
             String equation = equationField.getText();
             double a = Double.parseDouble(aField.getText());
             double b = Double.parseDouble(bField.getText());
-            double tolerance = 0.001;
+            double tolerance = 1e-6;
 
             int iterations = 0;
             int maxIterations = 100;
+            StringBuilder output = new StringBuilder();
+            output.append("Iter\t a\t b\t c\t f(c)\n");
 
             while (Math.abs(b - a) > tolerance && iterations < maxIterations) {
                 double c = (a + b) / 2;
@@ -93,8 +95,11 @@ public class BisectionCalculator extends JDialog {
                     throw new RuntimeException("Invalid function evaluation");
                 }
 
-                if (Math.abs(fc) < 1e-12) {
-                    resultArea.setText(String.format("Root found: %.2f\nIterations: %d", c, iterations + 1));
+                output.append(String.format("%d\t%.8f\t%.8f\t%.8f\t%.6e\n", iterations + 1, a, b, c, fc));
+
+                if (Math.abs(fc) < tolerance) {
+                    output.append(String.format("\nRoot found: %.2f\nIterations: %d", c, iterations + 1));
+                    resultArea.setText(output.toString());
                     return;
                 }
 
@@ -107,7 +112,8 @@ public class BisectionCalculator extends JDialog {
             }
 
             double root = (a + b) / 2;
-            resultArea.setText(String.format("Root: %.2f\nIterations: %d", root, iterations));
+            output.append(String.format("\nRoot: %.2f\nIterations: %d", root, iterations));
+            resultArea.setText(output.toString());
 
         } catch (Exception e) {
             resultArea.setText("Error: " + e.getMessage());

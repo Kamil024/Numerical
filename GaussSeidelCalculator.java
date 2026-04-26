@@ -7,7 +7,7 @@ public class GaussSeidelCalculator extends JDialog {
 
     public GaussSeidelCalculator(JFrame parent) {
         super(parent, "Gauss-Seidel Method", true);
-        setSize(600, 600);
+        setSize(620, 620);
         setLocationRelativeTo(parent);
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -41,6 +41,7 @@ public class GaussSeidelCalculator extends JDialog {
         formPanel.add(sizeField, formGbc);
 
         formGbc.gridx = 0; formGbc.gridy = 1;
+        formGbc.gridwidth = 1;
         formPanel.add(new JLabel("Augmented Matrix:"), formGbc);
         formGbc.gridx = 1; formGbc.gridwidth = 2;
         formPanel.add(new JScrollPane(matrixArea), formGbc);
@@ -72,6 +73,7 @@ public class GaussSeidelCalculator extends JDialog {
     private void calculate() {
         try {
             int n = Integer.parseInt(sizeField.getText());
+            double tolerance = 0.001;
             String[] rows = matrixArea.getText().trim().split("\n");
 
             double[][] A = new double[n][n];
@@ -85,7 +87,6 @@ public class GaussSeidelCalculator extends JDialog {
                 b[i] = Double.parseDouble(values[n].trim());
             }
 
-            double tolerance = 0.001;
             double[] x = new double[n];
             double[] prevX = new double[n];
             double[] ea = new double[n];
@@ -98,6 +99,12 @@ public class GaussSeidelCalculator extends JDialog {
 
             int iteration = 0;
             boolean converged;
+            StringBuilder output = new StringBuilder();
+            output.append("Iter");
+            for (int i = 0; i < n; i++) {
+                output.append(String.format("\tx%d", i + 1));
+            }
+            output.append("\tmaxError\n");
 
             do {
                 iteration++;
@@ -119,6 +126,14 @@ public class GaussSeidelCalculator extends JDialog {
                     ea[i] = Math.abs(x[i] - prevX[i]);
                 }
 
+                double maxError = 0;
+                output.append(String.format("%d", iteration));
+                for (int i = 0; i < n; i++) {
+                    output.append(String.format("\t%.6f", x[i]));
+                    maxError = Math.max(maxError, ea[i]);
+                }
+                output.append(String.format("\t%.6e\n", maxError));
+
                 converged = true;
                 for (int i = 0; i < n; i++) {
                     if (ea[i] > tolerance) {
@@ -132,12 +147,12 @@ public class GaussSeidelCalculator extends JDialog {
                 }
             } while (!converged);
 
-            StringBuilder solution = new StringBuilder("Solution:\n");
+            output.append("\nSolution:\n");
             for (int i = 0; i < n; i++) {
-                solution.append(String.format("x%d = %.6f\n", i + 1, x[i]));
+                output.append(String.format("x%d = %.2f\n", i + 1, x[i]));
             }
-            solution.append(String.format("Iterations: %d", iteration));
-            resultArea.setText(solution.toString());
+            output.append(String.format("Iterations: %d", iteration));
+            resultArea.setText(output.toString());
 
         } catch (Exception e) {
             resultArea.setText("Error: " + e.getMessage());

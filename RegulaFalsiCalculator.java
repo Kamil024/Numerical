@@ -7,7 +7,7 @@ public class RegulaFalsiCalculator extends JDialog {
 
     public RegulaFalsiCalculator(JFrame parent) {
         super(parent, "Regula Falsi Method", true);
-        setSize(600, 500);
+        setSize(620, 520);
         setLocationRelativeTo(parent);
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -79,11 +79,13 @@ public class RegulaFalsiCalculator extends JDialog {
             String equation = equationField.getText();
             double a = Double.parseDouble(aField.getText());
             double b = Double.parseDouble(bField.getText());
-            double tolerance = 0.001;
+            double tolerance = 1e-6;
 
             int iterations = 0;
             int maxIterations = 100;
             double c = 0;
+            StringBuilder output = new StringBuilder();
+            output.append("Iter\t a\t b\t c\t f(c)\n");
 
             while (iterations < maxIterations) {
                 double fa = evaluateFunction(a, equation);
@@ -100,10 +102,12 @@ public class RegulaFalsiCalculator extends JDialog {
                     throw new RuntimeException("Invalid function evaluation");
                 }
 
+                output.append(String.format("%d\t%.8f\t%.8f\t%.8f\t%.6e\n", iterations + 1, a, b, c, fc));
                 iterations++;
 
                 if (Math.abs(fc) < tolerance || Math.abs(b - a) <= tolerance) {
-                    resultArea.setText(String.format("Root: %.2f\nIterations: %d", c, iterations));
+                    output.append(String.format("\nRoot: %.2f\nIterations: %d", c, iterations));
+                    resultArea.setText(output.toString());
                     return;
                 }
 
@@ -114,7 +118,8 @@ public class RegulaFalsiCalculator extends JDialog {
                 }
             }
 
-            resultArea.setText(String.format("Root: %.2f\nIterations: %d", c, iterations));
+            output.append(String.format("\nRoot: %.2f\nIterations: %d", c, iterations));
+            resultArea.setText(output.toString());
 
         } catch (Exception e) {
             resultArea.setText("Error: " + e.getMessage());

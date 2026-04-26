@@ -89,14 +89,21 @@ public class TrapezoidalCalculator extends JDialog {
 
             double h = (b - a) / n;
             double sum = evaluateFunction(a, equation) + evaluateFunction(b, equation);
+            StringBuilder output = new StringBuilder();
+            output.append("i\tx\tf(x)\tcoeff\tterm\n");
+            output.append(String.format("0\t%.6f\t%.6e\t1\t%.6e\n", a, evaluateFunction(a, equation), evaluateFunction(a, equation)));
 
             for (int i = 1; i < n; i++) {
                 double x = a + i * h;
-                sum += 2 * evaluateFunction(x, equation);
+                double fx = evaluateFunction(x, equation);
+                output.append(String.format("%d\t%.6f\t%.6e\t2\t%.6e\n", i, x, fx, 2 * fx));
+                sum += 2 * fx;
             }
 
+            output.append(String.format("%d\t%.6f\t%.6e\t1\t%.6e\n", n, b, evaluateFunction(b, equation), evaluateFunction(b, equation)));
             double integral = (h / 2) * sum;
-            resultArea.setText(String.format("Integral ≈ %.6f", integral));
+            output.append(String.format("\nIntegral ≈ %.2f", integral));
+            resultArea.setText(output.toString());
 
         } catch (Exception e) {
             resultArea.setText("Error: " + e.getMessage());

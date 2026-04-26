@@ -2,12 +2,12 @@ import javax.swing.*;
 import java.awt.*;
 
 public class NewtonCalculator extends JDialog {
-    private JTextField equationField, derivativeField, x0Field;
+    private JTextField equationField, x0Field;
     private JTextArea resultArea;
 
     public NewtonCalculator(JFrame parent) {
         super(parent, "Newton-Raphson Method", true);
-        setSize(600, 550);
+        setSize(620, 560);
         setLocationRelativeTo(parent);
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -32,12 +32,10 @@ public class NewtonCalculator extends JDialog {
         formGbc.insets = new Insets(5, 5, 5, 5);
 
         equationField = new JTextField("x^3 - x - 2", 20);
-        derivativeField = new JTextField("3*x^2 - 1", 20);
         x0Field = new JTextField("1.5", 10);
 
         addFormField(formPanel, formGbc, "Function f(x):", equationField, 0);
-        addFormField(formPanel, formGbc, "Derivative f'(x):", derivativeField, 1);
-        addFormField(formPanel, formGbc, "Initial guess x₀:", x0Field, 2);
+        addFormField(formPanel, formGbc, "Initial guess x₀:", x0Field, 1);
 
         gbc.gridy = 1; gbc.gridwidth = 2;
         panel.add(formPanel, gbc);
@@ -77,46 +75,60 @@ public class NewtonCalculator extends JDialog {
     private void calculate() {
         try {
             String equation = equationField.getText();
-            String derivative = derivativeField.getText();
             double x = Double.parseDouble(x0Field.getText());
-            double tolerance = 0.0001;
+            double tolerance = 1e-6;
 
             int iterations = 0;
             int maxIterations = 100;
+            StringBuilder output = new StringBuilder();
+            output.append("Iter\t x\t f(x)\t f'(x)\t x_new\t Error\n");
 
-            while (iterations < maxIterations) {
+            for (; iterations < maxIterations; iterations++) {
                 double fx = evaluateFunction(x, equation);
-                double fpx = evaluateFunction(x, derivative);
 
-                if (Math.abs(fpx) < 1e-10) {
-                    resultArea.setText("Error: Derivative too close to zero");
+                double h = Math.max(Math.abs(x) * 1e-8, 1e-8);
+                double dfx = derivative(x, h);
+
+                if (Math.abs(dfx) < 1e-12) {
+                    resultArea.setText("Error: Derivative near zero");
                     return;
                 }
 
-                double xNew = x - fx / fpx;
-                iterations++;
-
-                if (Math.abs(xNew - x) < tolerance) {
-                    resultArea.setText(String.format("Root found: %.6f\nIterations: %d", xNew, iterations));
-                    return;
-                }
+                double xNew = x - fx / dfx;
+                double error = Math.abs(xNew - x);
+                output.append(String.format("%d\t%.8f\t%.6e\t%.6e\t%.8f\t%.6e\n", iterations + 1, x, fx, dfx, xNew, error));
 
                 x = xNew;
+                if (error < tolerance) {
+                    output.append(String.format("\nRoot ≈ %.2f after %d iterations", x, iterations + 1));
+                    resultArea.setText(output.toString());
+                    return;
+                }
             }
 
-            resultArea.setText(String.format("Root: %.6f\nIterations: %d", x, iterations));
+            output.append(String.format("\nStopped after %d iterations, last x ≈ %.2f", iterations, x));
+            resultArea.setText(output.toString());
 
         } catch (Exception e) {
             resultArea.setText("Error: " + e.getMessage());
         }
     }
 
+    private double derivative(double x, double h) {
+        return (evaluateFunction(x + h, equationField.getText()) - evaluateFunction(x - h, equationField.getText())) / (2 * h);
+    }
+
     private double evaluateFunction(double x, String equation) {
-        String expr = equation.replace("^", "**").replace("x", String.valueOf(x));
+        String expr = equation.replace("^", "**").replaceAll("\\bx\\b", String.valueOf(x));
         try {
-            return new ExpressionEvaluator().eval(expr);
+            double value = new ExpressionEvaluator().eval(expr);
+            if (Double.isNaN(value) || Double.isInfinite(value)) {
+                throw new RuntimeException("Invalid expression result");
+            }
+            return value;
         } catch (Exception e) {
-            return Double.NaN;
+            throw new RuntimeException("Invalid expression: " + e.getMessage(), e);
         }
     }
 }
+

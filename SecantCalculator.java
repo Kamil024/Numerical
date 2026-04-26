@@ -7,7 +7,7 @@ public class SecantCalculator extends JDialog {
 
     public SecantCalculator(JFrame parent) {
         super(parent, "Secant Method", true);
-        setSize(600, 500);
+        setSize(620, 520);
         setLocationRelativeTo(parent);
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -79,7 +79,7 @@ public class SecantCalculator extends JDialog {
             String equation = equationField.getText();
             double x0 = Double.parseDouble(x0Field.getText());
             double x1 = Double.parseDouble(x1Field.getText());
-            double tolerance = 0.0001;
+            double tolerance = 1e-6;
 
             double f0 = evaluateFunction(x0, equation);
             double f1 = evaluateFunction(x1, equation);
@@ -93,6 +93,8 @@ public class SecantCalculator extends JDialog {
             double x2 = Double.NaN;
             double prevX2 = Double.NaN;
             double ea = Double.NaN;
+            StringBuilder output = new StringBuilder();
+            output.append("Iter\t x0\t x1\t x2\t f(x2)\t Error\n");
 
             while (iterations < 100) {
                 if (Math.abs(f1 - f0) < 1e-10) {
@@ -102,15 +104,16 @@ public class SecantCalculator extends JDialog {
 
                 x2 = x1 - (f1 * (x1 - x0)) / (f1 - f0);
                 double f2 = evaluateFunction(x2, equation);
+                ea = (iterations == 0) ? Double.NaN : Math.abs(x2 - prevX2);
+
+                output.append(String.format("%d\t%.8f\t%.8f\t%.8f\t%.6e\t%s\n", iterations + 1, x0, x1, x2, f2,
+                        (iterations == 0 ? "-" : String.format("%.6e", ea))));
 
                 iterations++;
-
-                if (iterations > 1) {
-                    ea = Math.abs(x2 - prevX2);
-                    if (ea <= tolerance) {
-                        resultArea.setText(String.format("Root found: %.2f\nIterations: %d", x2, iterations));
-                        return;
-                    }
+                if (iterations > 1 && ea <= tolerance) {
+                    output.append(String.format("\nRoot found: %.2f\nIterations: %d", x2, iterations));
+                    resultArea.setText(output.toString());
+                    return;
                 }
 
                 x0 = x1;
@@ -120,7 +123,8 @@ public class SecantCalculator extends JDialog {
                 prevX2 = x2;
             }
 
-            resultArea.setText(String.format("Root: %.2f\nIterations: %d", x2, iterations));
+            output.append(String.format("\nRoot: %.2f\nIterations: %d", x2, iterations));
+            resultArea.setText(output.toString());
 
         } catch (Exception e) {
             resultArea.setText("Error: " + e.getMessage());

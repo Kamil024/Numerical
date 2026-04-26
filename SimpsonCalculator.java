@@ -109,15 +109,22 @@ public class SimpsonCalculator extends JDialog {
 
                 double h = (b - a) / n;
                 double sum = evaluateFunction(a, equation) + evaluateFunction(b, equation);
+                StringBuilder output = new StringBuilder();
+                output.append("i\tx\tf(x)\tcoeff\tterm\n");
+                output.append(String.format("0\t%.6f\t%.6e\t1\t%.6e\n", a, evaluateFunction(a, equation), evaluateFunction(a, equation)));
 
                 for (int i = 1; i < n; i++) {
                     double x = a + i * h;
                     double fx = evaluateFunction(x, equation);
-                    sum += (i % 2 == 0 ? 2 : 4) * fx;
+                    int coeff = (i % 2 == 0 ? 2 : 4);
+                    output.append(String.format("%d\t%.6f\t%.6e\t%d\t%.6e\n", i, x, fx, coeff, coeff * fx));
+                    sum += coeff * fx;
                 }
 
+                output.append(String.format("%d\t%.6f\t%.6e\t1\t%.6e\n", n, b, evaluateFunction(b, equation), evaluateFunction(b, equation)));
                 double integral = (h / 3) * sum;
-                resultArea.setText(String.format("Integral ≈ %.6f\n(Simpson's 1/3 Rule)", integral));
+                output.append(String.format("\nIntegral ≈ %.2f\n(Simpson's 1/3 Rule)", integral));
+                resultArea.setText(output.toString());
             } else {
                 if (n % 3 != 0) {
                     resultArea.setText("Error: n must be divisible by 3 for Simpson's 3/8 rule");
@@ -126,15 +133,22 @@ public class SimpsonCalculator extends JDialog {
 
                 double h = (b - a) / n;
                 double sum = evaluateFunction(a, equation) + evaluateFunction(b, equation);
+                StringBuilder output = new StringBuilder();
+                output.append("i\tx\tf(x)\tcoeff\tterm\n");
+                output.append(String.format("0\t%.6f\t%.6e\t1\t%.6e\n", a, evaluateFunction(a, equation), evaluateFunction(a, equation)));
 
                 for (int i = 1; i < n; i++) {
                     double x = a + i * h;
                     double fx = evaluateFunction(x, equation);
-                    sum += (i % 3 == 0 ? 2 : 3) * fx;
+                    int coeff = (i % 3 == 0 ? 2 : 3);
+                    output.append(String.format("%d\t%.6f\t%.6e\t%d\t%.6e\n", i, x, fx, coeff, coeff * fx));
+                    sum += coeff * fx;
                 }
 
+                output.append(String.format("%d\t%.6f\t%.6e\t1\t%.6e\n", n, b, evaluateFunction(b, equation), evaluateFunction(b, equation)));
                 double integral = (3 * h / 8) * sum;
-                resultArea.setText(String.format("Integral ≈ %.6f\n(Simpson's 3/8 Rule)", integral));
+                output.append(String.format("\nIntegral ≈ %.2f\n(Simpson's 3/8 Rule)", integral));
+                resultArea.setText(output.toString());
             }
 
         } catch (Exception e) {

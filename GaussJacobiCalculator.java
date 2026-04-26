@@ -7,7 +7,7 @@ public class GaussJacobiCalculator extends JDialog {
 
     public GaussJacobiCalculator(JFrame parent) {
         super(parent, "Gauss-Jacobi Method", true);
-        setSize(600, 600);
+        setSize(620, 620);
         setLocationRelativeTo(parent);
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -41,6 +41,7 @@ public class GaussJacobiCalculator extends JDialog {
         formPanel.add(sizeField, formGbc);
 
         formGbc.gridx = 0; formGbc.gridy = 1;
+        formGbc.gridwidth = 1;
         formPanel.add(new JLabel("Augmented Matrix:"), formGbc);
         formGbc.gridx = 1; formGbc.gridwidth = 2;
         formPanel.add(new JScrollPane(matrixArea), formGbc);
@@ -72,6 +73,7 @@ public class GaussJacobiCalculator extends JDialog {
     private void calculate() {
         try {
             int n = Integer.parseInt(sizeField.getText());
+            double tolerance = 0.001;
             String[] rows = matrixArea.getText().trim().split("\n");
 
             double[][] A = new double[n][n];
@@ -85,10 +87,15 @@ public class GaussJacobiCalculator extends JDialog {
                 b[i] = Double.parseDouble(values[n].trim());
             }
 
-            double tolerance = 0.001;
             double[] x = new double[n];
             int maxIterations = 100;
             int iterations = 0;
+            StringBuilder output = new StringBuilder();
+            output.append("Iter");
+            for (int i = 0; i < n; i++) {
+                output.append(String.format("\tx%d", i + 1));
+            }
+            output.append("\tmaxDiff\n");
 
             while (iterations < maxIterations) {
                 double[] xNew = new double[n];
@@ -108,6 +115,12 @@ public class GaussJacobiCalculator extends JDialog {
                     maxDiff = Math.max(maxDiff, Math.abs(xNew[i] - x[i]));
                 }
 
+                output.append(String.format("%d", iterations + 1));
+                for (int i = 0; i < n; i++) {
+                    output.append(String.format("\t%.6f", xNew[i]));
+                }
+                output.append(String.format("\t%.6e\n", maxDiff));
+
                 x = xNew;
                 iterations++;
 
@@ -116,12 +129,12 @@ public class GaussJacobiCalculator extends JDialog {
                 }
             }
 
-            StringBuilder solution = new StringBuilder("Solution:\n");
+            output.append("\nSolution:\n");
             for (int i = 0; i < n; i++) {
-                solution.append(String.format("x%d = %.6f\n", i + 1, x[i]));
+                output.append(String.format("x%d = %.2f\n", i + 1, x[i]));
             }
-            solution.append(String.format("Iterations: %d", iterations));
-            resultArea.setText(solution.toString());
+            output.append(String.format("Iterations: %d", iterations));
+            resultArea.setText(output.toString());
 
         } catch (Exception e) {
             resultArea.setText("Error: " + e.getMessage());
